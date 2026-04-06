@@ -10,7 +10,7 @@ A robust, production-ready Authentication and Security module for the **DealHub9
 - **Mail:** Spring Boot Starter Mail (SMTP)
 
 ## ✨ Core Features
-- **User Registration:** Secure onboarding with role management (BUYER/SELLER).
+- **User Registration:** Secure onboarding with role management (BUYER/SELLER/ADMIN).
 - **JWT-Based Login:** Stateless authentication return dynamic JWT tokens.
 - **Forgot/Reset Password:** Fully automated workflow with random token generation and expiry (15 mins).
 - **Secure Password Hashing:** BCrypt implementation for all credential storage.
@@ -54,6 +54,11 @@ Update `src/main/resources/application.properties` with your environment-specifi
 | `/api/auth/login` | `POST` | Authenticate and receive a JWT token |
 | `/api/auth/forgot-password` | `POST` | Request a password reset link |
 | `/api/auth/reset-password` | `POST` | Finalize password change with token |
+
+### 🔒 Admin-Only Endpoints
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/admin/dashboard` | `GET` | Administrative Dashboard (Requires `ADMIN` role) |
 
 ### 🔒 Protected Endpoints
 All other API routes are protected by default. Include the JWT in your headers:
