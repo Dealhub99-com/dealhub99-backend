@@ -43,7 +43,7 @@ public class AuthService {
     private MailService mailService;
 
     @Transactional
-    public User registerUser(UserRegistrationRequest request) {
+    public AuthResponse registerUser(UserRegistrationRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException("Error: Email is already in use!");
         }
@@ -56,7 +56,23 @@ public class AuthService {
                 .role(request.getRole())
                 .build();
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        
+        // Auto-authenticate after registration
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtils.generateJwtToken(authentication);
+
+        return AuthResponse.builder()
+                .token(jwt)
+                .id(savedUser.getId())
+                .email(savedUser.getEmail())
+                .fullName(savedUser.getFullName())
+                .mobileNumber(savedUser.getMobileNumber())
+                .role(savedUser.getRole())
+                .build();
     }
 
     public AuthResponse authenticateUser(UserLoginRequest request) {
