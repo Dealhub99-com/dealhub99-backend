@@ -31,15 +31,30 @@ public class Product {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @ElementCollection
+    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "image_url")
+    private java.util.List<String> imageUrls;
+
     @Column(nullable = false)
     private String productType; // e.g., "New", "Used"
 
     @Column(nullable = false)
-    private String status; // e.g., "Active", "Draft", "Archived"
+    @Builder.Default
+    private String status = "Pending"; // Active / Pending / Rejected
+
+    private String locationCity;
+    private String locationState;
 
     @Column(nullable = false)
     @Builder.Default
     private boolean approved = false;
+    
+    // Used product specific fields
+    private Integer yearOfPurchase;
+    @Column(name = "`usage`")
+    private String usage;
+    private String ownersCount;
 
     @Column(nullable = false)
     @Builder.Default

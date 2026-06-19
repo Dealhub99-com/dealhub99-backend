@@ -12,10 +12,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
+@Transactional
 public class AdminController {
 
     private final UserRepository userRepository;
@@ -82,6 +85,12 @@ public class AdminController {
         productService.approveProduct(id);
         return ResponseEntity.ok().build();
     }
+    
+    @PutMapping("/product/{id}/reject")
+    public ResponseEntity<Void> rejectProduct(@PathVariable Long id) {
+        productService.rejectProduct(id);
+        return ResponseEntity.ok().build();
+    }
 
     // DELETE /api/admin/product/{id} - Admin remove product
     @DeleteMapping("/product/{id}")
@@ -110,8 +119,14 @@ public class AdminController {
                 .businessName(profile != null ? profile.getBusinessName() : "N/A")
                 .businessAddress(profile != null ? profile.getBusinessAddress() : "N/A")
                 .city(profile != null ? profile.getCity() : "N/A")
+                .numberOfLocations(profile != null && profile.getNumberOfLocations() != null ? profile.getNumberOfLocations() : Integer.valueOf(1))
+                .gstNumber(profile != null ? profile.getGstNumber() : "N/A")
+                .aadhaarNumber(profile != null ? profile.getAadhaarNumber() : "N/A")
+                .businessCategory(profile != null ? profile.getBusinessCategory() : "N/A")
+                .productTypeFocus(profile != null ? profile.getProductTypeFocus() : "N/A")
                 .promoted(profile != null && profile.isPromoted())
                 .promotionRequested(profile != null && profile.isPromotionRequested())
+                .status(profile != null && profile.isPromoted() ? "VERIFIED" : "PENDING")
                 .supportRequestMessage(profile != null ? profile.getSupportRequestMessage() : null)
                 .build();
     }
@@ -122,19 +137,41 @@ public class AdminController {
                 .name(p.getName())
                 .price(p.getPrice())
                 .status(p.getStatus())
+                .approved(p.isApproved())
+                .viewCount(p.getViewCount())
+                .yearOfPurchase(p.getYearOfPurchase())
+                .usage(p.getUsage())
+                .ownersCount(p.getOwnersCount())
+                .locationCity(p.getLocationCity())
+                .locationState(p.getLocationState())
                 .categoryName(p.getCategory().getName())
                 .sellerStoreName(p.getSeller().getSellerProfile() != null ? 
                     p.getSeller().getSellerProfile().getBusinessName() : p.getSeller().getFullName())
+                .uploadDate(p.getUploadDate())
+                .productType(p.getProductType())
+                .totalSales(p.getTotalSales())
+                .sellerPhone(p.getSeller().getMobileNumber())
+                .sellerEmail(p.getSeller().getEmail())
+                .sellerAddress(p.getSeller().getSellerProfile() != null ? 
+                    p.getSeller().getSellerProfile().getBusinessAddress() : "N/A")
                 .build();
     }
 
     private EnquiryResponseDTO mapToEnquiryDTO(Enquiry e) {
         return EnquiryResponseDTO.builder()
                 .id(e.getId())
+                .productId(e.getProduct().getId())
                 .productName(e.getProduct().getName())
+                .productPrice(e.getProduct().getPrice())
+                .buyerId(e.getBuyer().getId())
                 .buyerName(e.getBuyer().getFullName())
+                .buyerEmail(e.getBuyer().getEmail())
+                .buyerPhone(e.getBuyer().getMobileNumber())
+                .sellerId(e.getSeller().getId())
                 .sellerStoreName(e.getSeller().getSellerProfile() != null ? 
                     e.getSeller().getSellerProfile().getBusinessName() : e.getSeller().getFullName())
+                .sellerPhone(e.getSeller().getMobileNumber())
+                .message(e.getMessage())
                 .status(e.getStatus())
                 .createdAt(e.getCreatedAt())
                 .build();

@@ -18,10 +18,13 @@ public class SellerProfileResponseDTO {
     private Integer numberOfLocations;
     private String gstNumber;
     private String aadhaarNumber;
+    private String businessCategory;
+    private String productTypeFocus;
     private String sellerName; // From User entity
     private String sellerEmail; // From User entity
     private String sellerPhone; // From User entity
     private boolean promoted;
     private boolean promotionRequested;
+    private String status;
     private String supportRequestMessage;
 }

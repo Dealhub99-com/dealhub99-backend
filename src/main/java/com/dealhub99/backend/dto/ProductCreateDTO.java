@@ -14,8 +14,14 @@ public class ProductCreateDTO {
     private String description;
     private Double price;
     private String imageUrl;
-    private String productType; // "New" / "Used"
+    private java.util.List<String> imageUrls;
+    private String productType;
     private Long categoryId;
     private Long brandId;
-    private String status; // Defaulting to "Active" or "Draft"
+    private Integer yearOfPurchase;
+    private String usage;
+    private String ownersCount;
+    private String locationCity;
+    private String locationState;
+    private String status;
 }

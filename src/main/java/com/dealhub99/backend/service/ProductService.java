@@ -12,10 +12,12 @@ public interface ProductService {
     List<Product> searchProducts(String query, String location, Long categoryId, Long brandId, String productType);
     List<Product> getPendingProducts();
     void approveProduct(Long id);
+    void rejectProduct(Long id);
     Optional<Product> getProductWithViewIncrement(Long id);
     Optional<Product> getProductById(Long id);
     List<Product> getProductsBySeller(Long sellerId);
     Product saveProduct(Product product);
     void changeProductStatus(Long id, String status);
+    void deleteProduct(Long id);
     void incrementSales(Long id);
 }

@@ -57,6 +57,32 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ApiError> handleUserAlreadyExistsException(UserAlreadyExistsException ex, WebRequest request) {
+        ApiError errorDetails = ApiError.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .message(ex.getMessage())
+                .details(request.getDescription(false))
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(errorDetails, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> handleValidationExceptions(org.springframework.web.bind.MethodArgumentNotValidException ex, WebRequest request) {
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(java.util.stream.Collectors.joining(", "));
+        
+        ApiError errorDetails = ApiError.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("Validation Failed: " + errorMessage)
+                .details(request.getDescription(false))
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGlobalException(Exception ex, WebRequest request) {
         ApiError errorDetails = ApiError.builder()

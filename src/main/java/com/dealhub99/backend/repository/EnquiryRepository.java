@@ -18,5 +18,6 @@ public interface EnquiryRepository extends JpaRepository<Enquiry, Long> {
     List<Enquiry> findByProductId(Long productId);
     
     // Check if buyer has already enquired about a product recently
-    boolean existsByBuyerIdAndProductIdAndStatus(Long buyerId, Long productId, String status);
+    // Check if buyer has already enquired about a product
+    boolean existsByBuyerIdAndProductId(Long buyerId, Long productId);
 }

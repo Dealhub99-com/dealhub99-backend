@@ -1,6 +1,5 @@
 package com.dealhub99.backend.dto;
 
-import com.dealhub99.backend.entity.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,12 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthResponse {
-    private String token;
+public class TokenRefreshResponse {
+    private String accessToken;
     private String refreshToken;
-    private Long id;
-    private String email;
-    private String fullName;
-    private String mobileNumber;
-    private UserRole role;
+    @Builder.Default
+    private String tokenType = "Bearer";
 }

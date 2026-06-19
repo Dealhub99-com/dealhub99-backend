@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local uploads (do not push to GitHub) ###
+uploads/
+*.env
+.env
+.env.local

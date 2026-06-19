@@ -24,4 +24,10 @@ public class NewsController {
     public ResponseEntity<BaseResponse<News>> createNews(@RequestBody News news) {
         return ResponseEntity.ok(BaseResponse.success("News created successfully", newsRepository.save(news)));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteNews(@PathVariable Long id) {
+        newsRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -24,7 +24,20 @@ public class UserController {
         
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
         return ResponseEntity.ok(BaseResponse.success("Profile fetched successfully", user));
+    }
+
+    @PostMapping("/profile")
+    public ResponseEntity<BaseResponse<User>> updateProfile(@RequestBody User updateData) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        
+        User user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (updateData.getFullName() != null) user.setFullName(updateData.getFullName());
+        if (updateData.getMobileNumber() != null) user.setMobileNumber(updateData.getMobileNumber());
+        
+        return ResponseEntity.ok(BaseResponse.success("Profile updated successfully", userRepository.save(user)));
     }
 }
