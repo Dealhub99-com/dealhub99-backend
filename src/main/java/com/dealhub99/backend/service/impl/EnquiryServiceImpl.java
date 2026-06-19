@@ -30,6 +30,11 @@ public class EnquiryServiceImpl implements EnquiryService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found."));
                 
+        // Check if user already enquired
+        if (enquiryRepository.existsByBuyerIdAndProductId(buyerId, productId)) {
+            throw new com.dealhub99.backend.exception.BadRequestException("You have already sent an enquiry for this product.");
+        }
+        
         User seller = product.getSeller();
 
         Enquiry enquiry = Enquiry.builder()

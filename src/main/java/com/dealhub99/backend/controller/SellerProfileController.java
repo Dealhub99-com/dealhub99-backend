@@ -65,11 +65,23 @@ public class SellerProfileController {
                 .numberOfLocations(updateDTO.getNumberOfLocations())
                 .gstNumber(updateDTO.getGstNumber())
                 .aadhaarNumber(updateDTO.getAadhaarNumber())
+                .businessCategory(updateDTO.getBusinessCategory())
+                .productTypeFocus(updateDTO.getProductTypeFocus())
                 .active(true)
                 .build();
         
         SellerProfile saved = sellerProfileService.saveOrUpdateProfile(userId, profile);
         return ResponseEntity.ok(BaseResponse.success("Seller profile updated successfully!", mapToDTO(saved)));
+    }
+
+    // POST /api/sellers/{userId}/request-promotion
+    @PostMapping("/{userId}/request-promotion")
+    @PreAuthorize("hasRole('SELLER')")
+    public ResponseEntity<BaseResponse<String>> requestPromotion(
+            @PathVariable Long userId,
+            @RequestBody String message) {
+        sellerProfileService.requestPromotion(userId, message);
+        return ResponseEntity.ok(BaseResponse.success("Promotion request sent successfully!", null));
     }
 
     // Mapper helper
@@ -84,9 +96,15 @@ public class SellerProfileController {
                 .numberOfLocations(profile.getNumberOfLocations())
                 .gstNumber(profile.getGstNumber())
                 .aadhaarNumber(profile.getAadhaarNumber())
+                .businessCategory(profile.getBusinessCategory())
+                .productTypeFocus(profile.getProductTypeFocus())
                 .sellerName(user.getFullName())
                 .sellerEmail(user.getEmail())
                 .sellerPhone(user.getMobileNumber())
+                .promoted(profile.isPromoted())
+                .promotionRequested(profile.isPromotionRequested())
+                .status(profile.isPromoted() ? "VERIFIED" : "PENDING")
+                .supportRequestMessage(profile.getSupportRequestMessage())
                 .build();
     }
 }

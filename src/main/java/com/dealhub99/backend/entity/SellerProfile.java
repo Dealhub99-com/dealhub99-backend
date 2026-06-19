@@ -36,6 +36,10 @@ public class SellerProfile {
 
     private String aadhaarNumber;
 
+    private String businessCategory;
+
+    private String productTypeFocus;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean active = true;

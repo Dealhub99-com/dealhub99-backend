@@ -47,6 +47,8 @@ public class SellerProfileServiceImpl implements SellerProfileService {
             profile.setNumberOfLocations(profileData.getNumberOfLocations());
             profile.setGstNumber(profileData.getGstNumber());
             profile.setAadhaarNumber(profileData.getAadhaarNumber());
+            profile.setBusinessCategory(profileData.getBusinessCategory());
+            profile.setProductTypeFocus(profileData.getProductTypeFocus());
             return sellerProfileRepository.save(profile);
         } else {
             User user = userRepository.findById(userId)
@@ -66,9 +68,22 @@ public class SellerProfileServiceImpl implements SellerProfileService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void togglePromotion(Long userId, boolean status) {
         SellerProfile profile = sellerProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Seller profile not found."));
+                .orElseGet(() -> {
+                    // Create default profile if missing
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+                    SellerProfile newProfile = new SellerProfile();
+                    newProfile.setUser(user);
+                    newProfile.setBusinessName(user.getFullName() + "'s Shop");
+                    newProfile.setBusinessAddress("Not specified");
+                    newProfile.setCity("Not specified");
+                    newProfile.setActive(true);
+                    return newProfile;
+                });
+        
         profile.setPromoted(status);
         profile.setPromotionRequested(false);
         sellerProfileRepository.save(profile);

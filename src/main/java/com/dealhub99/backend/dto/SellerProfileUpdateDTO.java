@@ -16,4 +16,6 @@ public class SellerProfileUpdateDTO {
     private Integer numberOfLocations;
     private String gstNumber;
     private String aadhaarNumber;
+    private String businessCategory;
+    private String productTypeFocus;
 }

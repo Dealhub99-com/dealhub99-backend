@@ -2,6 +2,7 @@ package com.dealhub99.backend.service;
 
 import com.dealhub99.backend.dto.*;
 import com.dealhub99.backend.entity.PasswordResetToken;
+import com.dealhub99.backend.entity.RefreshToken;
 import com.dealhub99.backend.entity.User;
 import com.dealhub99.backend.exception.ApiException;
 import com.dealhub99.backend.exception.ResourceNotFoundException;
@@ -42,10 +43,17 @@ public class AuthService {
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+
     @Transactional
     public AuthResponse registerUser(UserRegistrationRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("Error: Email is already in use!");
+            throw new UserAlreadyExistsException("Error: Email is already in use! Please login.");
+        }
+
+        if (userRepository.existsByMobileNumber(request.getMobileNumber())) {
+            throw new UserAlreadyExistsException("Error: Mobile number is already in use! Please use a different number.");
         }
 
         User user = User.builder()
@@ -58,15 +66,14 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
         
-        // Auto-authenticate after registration
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        // Manual authentication setup after registration to avoid 500 error from DB isolation
+        String jwt = jwtUtils.generateJwtTokenFromUsername(savedUser.getEmail());
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(savedUser.getId());
 
         return AuthResponse.builder()
                 .token(jwt)
+                .refreshToken(refreshToken.getToken())
                 .id(savedUser.getId())
                 .email(savedUser.getEmail())
                 .fullName(savedUser.getFullName())
@@ -86,8 +93,11 @@ public class AuthService {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
         return AuthResponse.builder()
                 .token(jwt)
+                .refreshToken(refreshToken.getToken())
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
@@ -130,5 +140,18 @@ public class AuthService {
         userRepository.save(user);
 
         tokenRepository.delete(resetToken);
+    }
+
+    public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
+        String requestRefreshToken = request.getRefreshToken();
+
+        return refreshTokenService.findByToken(requestRefreshToken)
+                .map(refreshTokenService::verifyExpiration)
+                .map(RefreshToken::getUser)
+                .map(user -> {
+                    String token = jwtUtils.generateJwtTokenFromUsername(user.getEmail());
+                    return new TokenRefreshResponse(token, requestRefreshToken, "Bearer");
+                })
+                .orElseThrow(() -> new com.dealhub99.backend.exception.TokenRefreshException(requestRefreshToken, "Refresh token is not in database!"));
     }
 }

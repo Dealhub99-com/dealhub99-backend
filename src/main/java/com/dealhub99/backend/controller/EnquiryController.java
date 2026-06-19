@@ -14,9 +14,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @RestController
 @RequestMapping("/api/enquiries")
 @RequiredArgsConstructor
+@Transactional
 public class EnquiryController {
 
     private final EnquiryService enquiryService;
@@ -57,6 +60,13 @@ public class EnquiryController {
     @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
     public ResponseEntity<Void> updateStatus(@PathVariable Long id, @RequestParam String status) {
         enquiryService.updateStatus(id, status);
+        return ResponseEntity.noContent().build();
+    }
+    // DELETE /api/enquiries/{id} - Delete enquiry permanently
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteEnquiry(@PathVariable Long id) {
+        enquiryService.deleteEnquiry(id);
         return ResponseEntity.noContent().build();
     }
 

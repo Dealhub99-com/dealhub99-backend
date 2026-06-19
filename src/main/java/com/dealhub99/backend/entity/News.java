@@ -26,10 +26,13 @@ public class News {
     private String content;
 
     @Column(nullable = false)
-    private String category;
+    private String category; // TRENDING, NEW LAUNCH, etc.
+
+    private String imageUrl;
 
     @Column(nullable = false)
-    private String status; // TRENDING, NEW LAUNCH, etc.
+    @Builder.Default
+    private String status = "Active";
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

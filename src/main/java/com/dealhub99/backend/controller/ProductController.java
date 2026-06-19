@@ -10,6 +10,8 @@ import com.dealhub99.backend.entity.Brand;
 import com.dealhub99.backend.service.ProductService;
 import com.dealhub99.backend.service.CategoryService;
 import com.dealhub99.backend.service.BrandService;
+import com.dealhub99.backend.service.FileUploadService;
+import com.dealhub99.backend.entity.UserRole;
 import com.dealhub99.backend.repository.UserRepository;
 import com.dealhub99.backend.exception.ResourceNotFoundException;
 import com.dealhub99.backend.exception.BadRequestException;
@@ -29,6 +31,20 @@ public class ProductController {
     private final CategoryService categoryService;
     private final BrandService brandService;
     private final UserRepository userRepository;
+    private final FileUploadService fileUploadService;
+
+    // POST /api/products/upload-images - Upload multiple product images
+    @PostMapping("/upload-images")
+    @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
+    public ResponseEntity<BaseResponse<java.util.List<String>>> uploadImages(
+            @RequestParam("images") org.springframework.web.multipart.MultipartFile[] images) {
+        
+        java.util.List<String> imageUrls = java.util.stream.Stream.of(images)
+                .map(fileUploadService::storeFile)
+                .collect(Collectors.toList());
+                
+        return ResponseEntity.ok(BaseResponse.success("Images uploaded successfully", imageUrls));
+    }
 
     // GET /api/products - Discovery (Active products)
     @GetMapping
@@ -120,12 +136,18 @@ public class ProductController {
                 .description(createDTO.getDescription())
                 .price(createDTO.getPrice())
                 .imageUrl(createDTO.getImageUrl())
+                .imageUrls(createDTO.getImageUrls())
                 .productType(createDTO.getProductType())
                 .status(createDTO.getStatus() != null ? createDTO.getStatus() : "Active")
-                .approved(seller.getRole() == com.dealhub99.backend.entity.UserRole.ADMIN) // Auto-approve if listing user is ADMIN
+                .approved(seller.getRole() == UserRole.ADMIN) // Auto-approve if listing user is ADMIN
                 .category(category)
                 .brand(brand)
                 .seller(seller)
+                .yearOfPurchase(createDTO.getYearOfPurchase())
+                .usage(createDTO.getUsage())
+                .ownersCount(createDTO.getOwnersCount())
+                .locationCity(createDTO.getLocationCity())
+                .locationState(createDTO.getLocationState())
                 .totalSales(0)
                 .viewCount(0)
                 .build();
@@ -159,8 +181,14 @@ public class ProductController {
         product.setDescription(updateDTO.getDescription());
         product.setPrice(updateDTO.getPrice());
         product.setImageUrl(updateDTO.getImageUrl());
+        product.setImageUrls(updateDTO.getImageUrls());
         product.setProductType(updateDTO.getProductType());
         product.setCategory(category);
+        product.setYearOfPurchase(updateDTO.getYearOfPurchase());
+        product.setUsage(updateDTO.getUsage());
+        product.setOwnersCount(updateDTO.getOwnersCount());
+        product.setLocationCity(updateDTO.getLocationCity());
+        product.setLocationState(updateDTO.getLocationState());
         
         Product saved = productService.saveProduct(product);
         return ResponseEntity.ok(BaseResponse.success("Product updated successfully", mapToDTO(saved)));
@@ -174,6 +202,16 @@ public class ProductController {
         return ResponseEntity.ok(BaseResponse.success("Product approved successfully", null));
     }
 
+    // PUT /api/products/{id}/status - Change product status (Active, Draft, Archived, etc.)
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
+    public ResponseEntity<BaseResponse<String>> changeStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+        productService.changeProductStatus(id, status);
+        return ResponseEntity.ok(BaseResponse.success("Product status changed to " + status, null));
+    }
+
     // GET /api/products/pending - Admin gets pending products
     @GetMapping("/pending")
     @PreAuthorize("hasRole('ADMIN')")
@@ -184,11 +222,11 @@ public class ProductController {
         return ResponseEntity.ok(BaseResponse.success("Pending products fetched", products));
     }
 
-    // DELETE /api/products/{id} - Seller archives or deletes a product
+    // DELETE /api/products/{id} - Seller or Admin deletes a product
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
-    public ResponseEntity<Void> archiveProduct(@PathVariable Long id) {
-        productService.changeProductStatus(id, "Archived");
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -200,6 +238,7 @@ public class ProductController {
                 .description(p.getDescription())
                 .price(p.getPrice())
                 .imageUrl(p.getImageUrl())
+                .imageUrls(p.getImageUrls())
                 .productType(p.getProductType())
                 .status(p.getStatus())
                 .approved(p.isApproved())
@@ -214,7 +253,17 @@ public class ProductController {
                         p.getSeller().getSellerProfile().getBusinessName() : p.getSeller().getFullName())
                 .sellerStoreCity(p.getSeller().getSellerProfile() != null ? 
                         p.getSeller().getSellerProfile().getCity() : "Other")
+                .sellerPromoted(p.getSeller().getSellerProfile() != null && p.getSeller().getSellerProfile().isPromoted())
+                .yearOfPurchase(p.getYearOfPurchase())
+                .usage(p.getUsage())
+                .ownersCount(p.getOwnersCount())
                 .uploadDate(p.getUploadDate())
+                .locationCity(p.getLocationCity())
+                .locationState(p.getLocationState())
+                .sellerPhone(p.getSeller().getMobileNumber())
+                .sellerEmail(p.getSeller().getEmail())
+                .sellerAddress(p.getSeller().getSellerProfile() != null ? 
+                        p.getSeller().getSellerProfile().getBusinessAddress() : "N/A")
                 .build();
     }
 }

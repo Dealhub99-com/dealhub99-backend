@@ -1,7 +1,6 @@
 package com.dealhub99.backend.controller;
 
 import com.dealhub99.backend.dto.*;
-import com.dealhub99.backend.entity.User;
 import com.dealhub99.backend.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,5 +36,11 @@ public class AuthController {
     public ResponseEntity<BaseResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request);
         return ResponseEntity.ok(BaseResponse.success("Password has been reset successfully", null));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<BaseResponse<TokenRefreshResponse>> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
+        TokenRefreshResponse response = authService.refreshToken(request);
+        return ResponseEntity.ok(BaseResponse.success("Token refreshed successfully!", response));
     }
 }
